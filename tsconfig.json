@@ -1,0 +1,43 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "lib": [
+            "ESNext",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "types": [
+            "types-mediawiki"
+        ],
+        "paths": {
+            "ext.gadget.unihan-helper": [
+                "./gadgets/unihan-helper/src/index"
+            ],
+            "ext.gadget.unihan-helper-settings": [
+                "./gadgets/unihan-helper-settings/src/index"
+            ],
+            "ext.gadget.HanAssist": [
+                "./node_modules/hanassist"
+            ]
+        },
+        "rootDir": ".",
+        "outDir": "dist",
+        "strict": true,
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "composite": true,
+        "allowJs": true
+    },
+    "include": [
+        "gadgets/*/src/**/*.ts",
+        "gadgets/*/src/**/*.vue",
+        "gadgets/*/messages.json",
+        "gadgets/*/package.json",
+        "gadgets/env.d.ts"
+    ]
+}
