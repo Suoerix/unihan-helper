@@ -58,17 +58,17 @@ function initOverlay(): void {
  */
 async function openSettings(): Promise<void> {
     try {
-        // 如果还没有获取字体列表，先获取
-        if (availableFonts === null) {
-            availableFonts = await fetchFontList();
-        }
-
         // 动态加载设置模块
         await mw.loader.using('ext.gadget.unihan-helper-settings');
 
         // 调用设置模块的打开函数
         const settingsModule = require('ext.gadget.unihan-helper-settings');
         if (settingsModule && typeof settingsModule.openDialog === 'function') {
+            // 如果用户已启用网络字形，先获取字体列表再打开对话框
+            if (settings.useWebfont && availableFonts === null) {
+                availableFonts = await fetchFontList();
+            }
+
             settingsModule.openDialog(
                 availableFonts,
                 settings,
@@ -87,6 +87,13 @@ async function openSettings(): Promise<void> {
                     }
 
                     // 设置已保存，不显示通知
+                },
+                // 提供字体加载函数
+                async () => {
+                    if (availableFonts === null) {
+                        availableFonts = await fetchFontList();
+                    }
+                    return availableFonts;
                 }
             );
         }

@@ -3,7 +3,7 @@
  */
 
 import { createMwApp } from 'vue';
-import { CdxDialog, CdxField, CdxRadio, CdxToggleSwitch } from '@wikimedia/codex';
+import { CdxDialog, CdxField, CdxLabel, CdxRadio, CdxToggleSwitch } from '@wikimedia/codex';
 import { batchConv } from 'ext.gadget.HanAssist';
 import type { FontInfo, Settings } from './types';
 
@@ -17,7 +17,10 @@ mw.messages.set(
       hant: '如要完全關閉，請登入後在參數設定取消勾選本小工具。',
     },
     'unihan-use-webfont': { hans: '使用网络字形', hant: '使用網路字型' },
-    'unihan-use-webfont-desc': { hans: '请求网络字形显示罕用字。', hant: '請求網路字型顯示罕用字。' },
+    'unihan-use-webfont-desc': {
+      hans: '使用网络字形显示罕用字。启用本选项，视为您同意《<a href="https://wikitech.wikimedia.org/wiki/Wikitech:Cloud_Services_End_User_Terms_of_use" target="_blank" rel="noopener noreferrer">维基媒体云服务最终用户使用条款</a>》。',
+      hant: '使用網路字型顯示罕用字。啟用本選項，視為您同意《<a href="https://wikitech.wikimedia.org/wiki/Wikitech:Cloud_Services_End_User_Terms_of_use" target="_blank" rel="noopener noreferrer">維基媒體雲端服務最終使用者條款</a>》。'
+    },
     'unihan-load-mode': { hans: '网络字形加载模式', hant: '網路字型載入模式' },
     'unihan-load-mode-fallback': { hans: '优先使用系统字形', hant: '優先使用系統字型' },
     'unihan-load-mode-fallback-desc': {
@@ -30,6 +33,8 @@ mw.messages.set(
       hant: '總是使用網路字型顯示罕用字。',
     },
     'unihan-preferred-font': { hans: '偏好字体', hant: '偏好字型' },
+    'unihan-enable-webfont-to-show-fonts': { hans: '启用网络字形以显示可用字体。', hant: '啟用網路字型以顯示可用字型。' },
+    'unihan-loading-fonts': { hans: '加载可用字体中……', hant: '載入可用字型中……' },
     'unihan-version': { hans: '版本：', hant: '版本：' },
     'unihan-close': { hans: '关闭', hant: '關閉' },
     'unihan-save': { hans: '确定', hant: '確定' },
@@ -78,12 +83,13 @@ function parseWikiLink(title: string): { text: string; url: string; isExternal: 
  * 打开设置对话框
  */
 export function openDialog(
-  fonts: FontInfo[],
+  fonts: FontInfo[] | null,
   currentSettings: Settings,
-  onSave: (newSettings: Settings) => void
+  onSave: (newSettings: Settings) => void,
+  onLoadFonts?: () => Promise<FontInfo[]>
 ): void {
   // 过滤掉隐藏的字体
-  const visibleFonts = fonts.filter((font) => font.id !== 'SourceHanSans');
+  const visibleFonts = fonts ? fonts.filter((font) => font.id !== 'SourceHanSans') : [];
 
   // 如果已经有实例，先销毁
   if (app && mountPoint) {
@@ -107,9 +113,19 @@ export function openDialog(
         loadMode: currentSettings.loadMode,
         selectedFontId: currentSettings.selectedFont,
         fonts: visibleFonts,
+        fontsLoading: false,
+        fontsLoaded: fonts !== null,
         // 原始设置，用于检测变更
         originalSettings: { ...currentSettings },
       };
+    },
+    watch: {
+      useWebfont(newVal: boolean) {
+        // 当用户开启网络字形且字体未加载时，加载字体列表
+        if (newVal && !this.fontsLoaded && !this.fontsLoading && onLoadFonts) {
+          this.loadFonts();
+        }
+      },
     },
     computed: {
       fontOptions() {
@@ -135,6 +151,22 @@ export function openDialog(
       },
     },
     methods: {
+      async loadFonts() {
+        if (!onLoadFonts || this.fontsLoading || this.fontsLoaded) {
+          return;
+        }
+        this.fontsLoading = true;
+        try {
+          const loadedFonts = await onLoadFonts();
+          const filtered = loadedFonts.filter((font) => font.id !== 'SourceHanSans');
+          this.fonts = filtered;
+          this.fontsLoaded = true;
+        } catch (error) {
+          console.error('Failed to load fonts:', error);
+        } finally {
+          this.fontsLoading = false;
+        }
+      },
       closeDialog() {
         this.showDialog = false;
         setTimeout(() => {
@@ -186,7 +218,7 @@ export function openDialog(
             <cdx-toggle-switch v-model="useWebfont" :disabled="!enabled">
               {{ $root.msg('unihan-use-webfont') }}
               <template #description>
-                {{ $root.msg('unihan-use-webfont-desc') }}
+                <span v-html="$root.msg('unihan-use-webfont-desc')"></span>
               </template>
             </cdx-toggle-switch>
           </div>
@@ -219,26 +251,44 @@ export function openDialog(
           <!-- 偏好字体 -->
           <cdx-field :is-fieldset="true" :disabled="!enabled || !useWebfont">
             <template #label>{{ $root.msg('unihan-preferred-font') }}</template>
-            <cdx-radio
-              v-for="font in fontOptions"
-              :key="font.value"
-              v-model="selectedFontId"
-              name="font-selection"
-              :input-value="font.value"
-            >
-              <a 
-                v-if="parseWikiLink(font.title).url"
-                :href="parseWikiLink(font.title).url" 
-                :target="parseWikiLink(font.title).isExternal ? '_blank' : '_self'"
-                :rel="parseWikiLink(font.title).isExternal ? 'noopener noreferrer' : ''"
-              >
-                {{ parseWikiLink(font.title).text }}
-              </a>
-              <span v-else>{{ parseWikiLink(font.title).text }}</span>
+            
+            <!-- 未启用网络字形时的提示 -->
+            <cdx-label v-if="!useWebfont" :disabled="true">
               <template #description>
-                {{ $root.msg('unihan-version') }}{{ font.version }}
+                {{ $root.msg('unihan-enable-webfont-to-show-fonts') }}
               </template>
-            </cdx-radio>
+            </cdx-label>
+            
+            <!-- 加载中 -->
+            <cdx-label v-else-if="fontsLoading">
+              <template #description>
+                {{ $root.msg('unihan-loading-fonts') }}
+              </template>
+            </cdx-label>
+            
+            <!-- 字体选项 -->
+            <template v-else-if="fontsLoaded">
+              <cdx-radio
+                v-for="font in fontOptions"
+                :key="font.value"
+                v-model="selectedFontId"
+                name="font-selection"
+                :input-value="font.value"
+              >
+                <a 
+                  v-if="parseWikiLink(font.title).url"
+                  :href="parseWikiLink(font.title).url" 
+                  :target="parseWikiLink(font.title).isExternal ? '_blank' : '_self'"
+                  :rel="parseWikiLink(font.title).isExternal ? 'noopener noreferrer' : ''"
+                >
+                  {{ parseWikiLink(font.title).text }}
+                </a>
+                <span v-else>{{ parseWikiLink(font.title).text }}</span>
+                <template #description>
+                  {{ $root.msg('unihan-version') }}{{ font.version }}
+                </template>
+              </cdx-radio>
+            </template>
           </cdx-field>
 
           <!-- 帮助链接 -->
@@ -257,6 +307,7 @@ export function openDialog(
   app.component('cdx-dialog', CdxDialog);
   app.component('cdx-radio', CdxRadio);
   app.component('cdx-field', CdxField);
+  app.component('cdx-label', CdxLabel);
   app.component('cdx-toggle-switch', CdxToggleSwitch);
 
   app.mount(mountPoint);

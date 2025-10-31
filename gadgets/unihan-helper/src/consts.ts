@@ -16,7 +16,7 @@ export const STORAGE_KEY = 'unihan-settings';
 export const DEFAULT_FONT = 'Plangothic';
 export const DEFAULT_SETTINGS = {
     enabled: true,
-    useWebfont: true,
+    useWebfont: false,
     loadMode: 'always' as 'fallback' | 'always',
     selectedFont: DEFAULT_FONT,
 };
