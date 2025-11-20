@@ -3,7 +3,7 @@
  */
 
 import { getCodePoint, getHexCodePoint } from './utils';
-import { buildFontUrl, buildFontApiUrl } from './api';
+import { buildFontApiUrl } from './api';
 import { CLASSES } from './consts';
 
 /**
@@ -48,8 +48,7 @@ export function applyWebFont(char: string, fontId: string, loadMode: 'fallback' 
     const css = `
 @font-face {
   font-family: "${fontFamily}";
-  src: url("${buildFontUrl(fontId, codePoint)}") format("woff2"),
-       url("${buildFontApiUrl(fontId, codePoint)}") format("woff2");
+  src: url("${buildFontApiUrl(fontId, codePoint)}") format("woff2");
   unicode-range: U+${hexCodePoint};
 }`;
 
