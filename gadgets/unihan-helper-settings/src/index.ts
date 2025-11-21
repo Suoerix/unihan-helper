@@ -38,6 +38,7 @@ mw.messages.set(
     'unihan-preferred-font': { hans: '偏好字体', hant: '偏好字型' },
     'unihan-enable-webfont-to-show-fonts': { cn: '启用网络字形以显示可用字体。', hk: '啟用網絡字型以顯示可用字型。', tw: '啟用網路字型以顯示可用字型。' },
     'unihan-loading-fonts': { hans: '加载可用字体中……', hant: '載入可用字型中……' },
+    'unihan-font-load-failed': { cn: '网络字体加载失败。', hk: '網絡字型載入失敗。', tw: '網路字型載入失敗。' },
     'unihan-version': { hans: '版本：', hant: '版本：' },
     'unihan-close': { hans: '关闭', hant: '關閉' },
     'unihan-save': { hans: '确定', hant: '確定' },
@@ -118,6 +119,7 @@ export function openDialog(
         fonts: visibleFonts,
         fontsLoading: false,
         fontsLoaded: fonts !== null,
+        fontsLoadError: false,
         // 原始设置，用于检测变更
         originalSettings: { ...currentSettings },
       };
@@ -159,6 +161,7 @@ export function openDialog(
           return;
         }
         this.fontsLoading = true;
+        this.fontsLoadError = false;
         try {
           const loadedFonts = await onLoadFonts();
           const filtered = loadedFonts.filter((font) => font.id !== 'SourceHanSans');
@@ -166,6 +169,9 @@ export function openDialog(
           this.fontsLoaded = true;
         } catch (error) {
           console.error('Failed to load fonts:', error);
+          this.fontsLoadError = true;
+          this.fontsLoaded = false;
+          this.fonts = [];
         } finally {
           this.fontsLoading = false;
         }
@@ -268,7 +274,14 @@ export function openDialog(
                 {{ $root.msg('unihan-loading-fonts') }}
               </template>
             </cdx-label>
-            
+
+            <!-- 加载失败 -->
+            <cdx-label v-else-if="fontsLoadError" :disabled="true">
+              <template #description>
+                {{ $root.msg('unihan-font-load-failed') }}
+              </template>
+            </cdx-label>
+
             <!-- 字体选项 -->
             <template v-else-if="fontsLoaded">
               <cdx-radio
