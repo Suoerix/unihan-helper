@@ -64,9 +64,16 @@ async function openSettings(): Promise<void> {
         // 调用设置模块的打开函数
         const settingsModule = require('ext.gadget.unihan-helper-settings');
         if (settingsModule && typeof settingsModule.openDialog === 'function') {
-            // 如果用户已启用网络字形，先获取字体列表再打开对话框
+            // 如果用户已启用网络字形，尝试获取字体列表
+            // 但即使失败也继续打开对话框，让用户可以修改其他设置
+            let fontLoadError = false;
             if (settings.useWebfont && availableFonts === null) {
-                availableFonts = await fetchFontList();
+                try {
+                    availableFonts = await fetchFontList();
+                } catch (error) {
+                    console.error('Failed to fetch font list:', error);
+                    fontLoadError = true;
+                }
             }
 
             settingsModule.openDialog(
@@ -94,7 +101,9 @@ async function openSettings(): Promise<void> {
                         availableFonts = await fetchFontList();
                     }
                     return availableFonts;
-                }
+                },
+                // 传递初始加载错误状态
+                fontLoadError
             );
         }
     } catch (error) {
