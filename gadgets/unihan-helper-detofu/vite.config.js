@@ -6,6 +6,7 @@ import vue from '@vitejs/plugin-vue';
 import packageJson from './package.json' with { type: 'json' };
 import browserslistToEsbuild from '../../scripts/browserslist_to_esbuild.js';
 import autoprefixer from 'autoprefixer';
+import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig(({ command }) => {
     return {
@@ -14,26 +15,9 @@ export default defineConfig(({ command }) => {
             footer: readFileSync('../../assets/outro.js').toString().trim(),
         },
 
-        resolve:
-            command === 'serve'
-                ? {
-                    alias: {
-                        'ext.gadget.HanAssist': 'hanassist',
-                        'ext.gadget.unihan-helper': `${import.meta.dirname}/src/index`,
-                        'ext.gadget.unihan-helper-settings': `${import.meta.dirname}/../unihan-helper-settings/src/index`,
-                        'ext.gadget.unihan-helper-detofu': `${import.meta.dirname}/../unihan-helper-detofu/src/index`,
-                    },
-                }
-                : undefined,
-
         css: {
             postcss: {
                 plugins: [autoprefixer()],
-            },
-            preprocessorOptions: {
-                less: {
-                    strictUnits: true,
-                },
             },
         },
 
@@ -48,25 +32,21 @@ export default defineConfig(({ command }) => {
             target: ['es2017'],
             cssTarget: browserslistToEsbuild(),
             rollupOptions: {
-                external: ['vue'],
                 output: {
                     entryFileNames: `Gadget-${packageJson.name}.js`,
                     chunkFileNames: `Gadget-${packageJson.name}-[name].js`,
-                    assetFileNames: `Gadget-${packageJson.name}.css`,
-                    globals: {
-                        'vue': 'Vue'
-                    }
+                    // assetFileNames: `Gadget-${packageJson.name}.css`, // CSS is injected by JS
                 },
             },
         },
 
         plugins: [
             vue(),
+            cssInjectedByJs(),
             {
                 enforce: 'pre',
                 ...mwGadget({
                     gadgetDef: '.gadgetdefinition',
-                    softDependencies: ['ext.gadget.unihan-helper-settings', 'ext.gadget.unihan-helper-detofu'],
                 }),
             },
         ],

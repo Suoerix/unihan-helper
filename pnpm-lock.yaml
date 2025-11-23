@@ -118,6 +118,12 @@ importers:
         specifier: ^5.0.0
         version: 5.2.4(vite@6.4.1(@types/node@22.18.12)(less@4.4.2))(vue@3.5.22(typescript@5.9.3))
 
+  gadgets/unihan-helper-detofu:
+    devDependencies:
+      vite-plugin-css-injected-by-js:
+        specifier: ^3.5.2
+        version: 3.5.2(vite@6.4.1(@types/node@22.18.12)(less@4.4.2))
+
   gadgets/unihan-helper-settings:
     dependencies:
       '@wikimedia/codex':
@@ -1937,6 +1943,11 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  vite-plugin-css-injected-by-js@3.5.2:
+    resolution: {integrity: sha512-2MpU/Y+SCZyWUB6ua3HbJCrgnF0KACAsmzOQt1UvRVJCGF6S8xdA3ZUhWcWdM9ivG4I5az8PnQmwwrkC2CAQrQ==}
+    peerDependencies:
+      vite: '>2.0.0-0'
 
   vite@6.4.1:
     resolution: {integrity: sha512-+Oxm7q9hDoLMyJOYfUYBuHQo+dkAloi33apOPP56pzj+vsdJDzr+j1NISE5pyaAuKL4A3UD34qd0lx5+kfKp2g==}
@@ -3915,6 +3926,10 @@ snapshots:
       requires-port: 1.0.0
 
   util-deprecate@1.0.2: {}
+
+  vite-plugin-css-injected-by-js@3.5.2(vite@6.4.1(@types/node@22.18.12)(less@4.4.2)):
+    dependencies:
+      vite: 6.4.1(@types/node@22.18.12)(less@4.4.2)
 
   vite@6.4.1(@types/node@22.18.12)(less@4.4.2):
     dependencies:

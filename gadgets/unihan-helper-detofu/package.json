@@ -1,0 +1,14 @@
+{
+  "name": "unihan-helper-detofu",
+  "version": "1.0.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:host": "vite --host",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite-plugin-css-injected-by-js": "^3.5.2"
+  }
+}
