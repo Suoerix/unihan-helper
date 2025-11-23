@@ -16,23 +16,18 @@ const fontVersions: Record<string, string> = {
  * 获取可用字体列表
  */
 export async function fetchFontList(): Promise<FontInfo[]> {
-    try {
-        const response = await fetch(`${API_BASE}/api/v1/list`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const list: FontInfo[] = await response.json();
-
-        // 缓存版本号
-        list.forEach(font => {
-            fontVersions[font.id] = font.version;
-        });
-
-        return list;
-    } catch (error) {
-        console.error('Failed to fetch font list:', error);
-        return [];
+    const response = await fetch(`${API_BASE}/api/v1/list`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const list: FontInfo[] = await response.json();
+
+    // 缓存版本号
+    list.forEach(font => {
+        fontVersions[font.id] = font.version;
+    });
+
+    return list;
 }
 
 /**

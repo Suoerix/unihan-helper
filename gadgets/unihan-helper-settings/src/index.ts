@@ -90,7 +90,8 @@ export function openDialog(
   fonts: FontInfo[] | null,
   currentSettings: Settings,
   onSave: (newSettings: Settings) => void,
-  onLoadFonts?: () => Promise<FontInfo[]>
+  onLoadFonts?: () => Promise<FontInfo[]>,
+  initialLoadError?: boolean
 ): void {
   // 过滤掉隐藏的字体
   const visibleFonts = fonts ? fonts.filter((font) => font.id !== 'SourceHanSans') : [];
@@ -119,7 +120,7 @@ export function openDialog(
         fonts: visibleFonts,
         fontsLoading: false,
         fontsLoaded: fonts !== null,
-        fontsLoadError: false,
+        fontsLoadError: initialLoadError || false,
         // 原始设置，用于检测变更
         originalSettings: { ...currentSettings },
       };
@@ -275,15 +276,8 @@ export function openDialog(
               </template>
             </cdx-label>
 
-            <!-- 加载失败 -->
-            <cdx-label v-else-if="fontsLoadError" :disabled="true">
-              <template #description>
-                {{ $root.msg('unihan-font-load-failed') }}
-              </template>
-            </cdx-label>
-
             <!-- 字体选项 -->
-            <template v-else-if="fontsLoaded">
+            <template v-else-if="fontsLoaded && fonts.length > 0">
               <cdx-radio
                 v-for="font in fontOptions"
                 :key="font.value"
@@ -305,6 +299,13 @@ export function openDialog(
                 </template>
               </cdx-radio>
             </template>
+
+            <!-- 字体选项加载失败 -->
+            <cdx-label v-else>
+              <template #description>
+                {{ $root.msg('unihan-font-load-failed') }}
+              </template>
+            </cdx-label>
           </cdx-field>
 
           <!-- 帮助链接 -->
