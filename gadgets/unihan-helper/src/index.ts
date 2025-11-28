@@ -125,7 +125,9 @@ function bindInteractions(): void {
 
     elements.forEach((el) => {
         const element = el as HTMLElement;
-        const tooltipText = element.getAttribute('title') || element.textContent || '';
+        const tooltipText = element.getAttribute('title');
+        if (!tooltipText) return; // If there's no title attribute or it's empty, don't proceed
+
         element.removeAttribute('title');
 
         const tooltip = new Tooltip(element, tooltipText, openSettings);
