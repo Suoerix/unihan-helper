@@ -21,3 +21,10 @@ onlyBuiltDependencies:
   - esbuild
   - hanassist
   - vue-demi
+
+# types-mediawiki 的 vue peer 只列了几个历史版本（1.10.1 止于 3.4.27），
+# 而 MediaWiki 现在运行时提供的是 Vue 3.5.x，设置模块也按 ^3.5 开发。
+# 此处明确放行，免得在 strict-peer-dependencies 下安装失败。
+peerDependencyRules:
+  allowedVersions:
+    types-mediawiki>vue: ^3.5.13
