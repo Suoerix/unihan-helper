@@ -35,8 +35,8 @@ pnpm run lint:fix
 
 在MediaWiki:Gadgets-definition中加入：
 ```
-* unihan-helper[ResourceLoader|package|dependencies=ext.gadget.HanAssist]|unihan-helper.js|unihan-helper.css
-* unihan-helper-settings[ResourceLoader|package|hidden|dependencies=ext.gadget.HanAssist,ext.gadget.unihan-helper,vue,@wikimedia/codex]|unihan-helper-settings.js
+* unihan-helper[ResourceLoader|package|dependencies=ext.gadget.HanAssist,mediawiki.cookie,mediawiki.notification,mediawiki.util]|unihan-helper.js|unihan-helper.css
+* unihan-helper-settings[ResourceLoader|package|hidden|dependencies=ext.gadget.HanAssist,ext.gadget.unihan-helper,vue,@wikimedia/codex,mediawiki.util]|unihan-helper-settings.js
 ```
 复制 `dist` 目录下的构建产物。
 
